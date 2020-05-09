@@ -343,7 +343,9 @@ static void *CALL_MMAP(size_t size)
 }
 #endif
 
-#if (defined(__FreeBSD__) || defined(__FreeBSD_kernel__)) && !LJ_TARGET_PS4
+// fix `Data segment size exceeds process limit` errors on freebsd
+// @see https://github.com/moonjit/moonjit/pull/1
+#if 0// (defined(__FreeBSD__) || defined(__FreeBSD_kernel__)) && !LJ_TARGET_PS4
 
 #include <sys/resource.h>
 
