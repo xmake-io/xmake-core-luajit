@@ -1,0 +1,30 @@
+name: macOS
+
+on:
+  pull_request:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: artifact (x86_64)
+        run: |
+          make MACOSX_DEPLOYMENT_TARGET=10.14
+          mkdir autogen
+          cp src/lj_bcdef.h autogen
+          cp src/lj_ffdef.h autogen
+          cp src/lj_folddef.h autogen
+          cp src/lj_libdef.h autogen
+          cp src/lj_recdef.h autogen
+          cp src/lj_vm.S autogen
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_x86_64
+          path: autogen

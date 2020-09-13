@@ -1,0 +1,47 @@
+name: Windows
+
+on:
+  pull_request:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        arch: [x64, x86]
+
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Add msvc to PATH
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+        # build artifacts
+      - name: artifact
+        run: |
+          (New-Item ./autogen_${{ matrix.arch }} -ItemType Directory).FullName
+          cd ./src
+          ./msvcbuild.bat
+          cd ..
+          Copy-Item src/lj_bcdef.h ./autogen_${{ matrix.arch }}/
+          Copy-Item src/lj_folddef.h ./autogen_${{ matrix.arch }}/ 
+          Copy-Item src/lj_recdef.h ./autogen_${{ matrix.arch }}/
+          Copy-Item src/lj_vm.obj ./autogen_${{ matrix.arch }}/
+          Copy-Item src/lj_vm.obj ./autogen_${{ matrix.arch }}/lj_vm.o
+          Copy-Item src/lj_ffdef.h ./autogen_${{ matrix.arch }}/
+          Copy-Item src/lj_libdef.h ./autogen_${{ matrix.arch }}/
+
+        # upload artifacts
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_${{ matrix.arch }}
+          path: autogen_${{ matrix.arch }}
