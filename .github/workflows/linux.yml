@@ -1,0 +1,86 @@
+name: Linux
+
+on:
+  pull_request:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: prepare
+        run: |
+          sudo apt update
+          sudo apt install -y git build-essential
+          sudo apt install -y gcc-multilib
+
+      - name: artifact (x86_64)
+        run: |
+          make clean
+          make
+          mkdir autogen_x86_64
+          cp src/lj_bcdef.h autogen_x86_64
+          cp src/lj_ffdef.h autogen_x86_64
+          cp src/lj_folddef.h autogen_x86_64
+          cp src/lj_libdef.h autogen_x86_64
+          cp src/lj_recdef.h autogen_x86_64
+          cp src/lj_vm.S autogen_x86_64
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_x86_64
+          path: autogen_x86_64
+
+      - name: artifact (i386)
+        run: |
+          make clean
+          make CC="gcc -m32"
+          mkdir autogen_i386
+          cp src/lj_bcdef.h autogen_i386
+          cp src/lj_ffdef.h autogen_i386
+          cp src/lj_folddef.h autogen_i386
+          cp src/lj_libdef.h autogen_i386
+          cp src/lj_recdef.h autogen_i386
+          cp src/lj_vm.S autogen_i386
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_i386
+          path: autogen_i386
+
+      - name: artifact (nojit/x86_64)
+        run: |
+          make clean
+          make XCFLAGS="-DLUAJIT_DISABLE_JIT"
+          mkdir autogen_nojit_x86_64
+          cp src/lj_bcdef.h autogen_nojit_x86_64
+          cp src/lj_ffdef.h autogen_nojit_x86_64
+          cp src/lj_folddef.h autogen_nojit_x86_64
+          cp src/lj_libdef.h autogen_nojit_x86_64
+          cp src/lj_recdef.h autogen_nojit_x86_64
+          cp src/lj_vm.S autogen_nojit_x86_64
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_nojit_x86_64
+          path: autogen_nojit_x86_64
+
+      - name: artifact (nojit/i386)
+        run: |
+          make clean
+          make XCFLAGS="-DLUAJIT_DISABLE_JIT" CC="gcc -m32"
+          mkdir autogen_nojit_i386
+          cp src/lj_bcdef.h autogen_nojit_i386
+          cp src/lj_ffdef.h autogen_nojit_i386
+          cp src/lj_folddef.h autogen_nojit_i386
+          cp src/lj_libdef.h autogen_nojit_i386
+          cp src/lj_recdef.h autogen_nojit_i386
+          cp src/lj_vm.S autogen_nojit_i386
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_nojit_i386
+          path: autogen_nojit_i386
+

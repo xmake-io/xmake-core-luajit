@@ -1,0 +1,66 @@
+name: Debian (Mips)
+
+on:
+  pull_request:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - run: |
+          docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+      - uses: docker://multiarch/debian-debootstrap:mips64el-stretch
+        with:
+          args: >
+            bash -c
+            "uname -a &&
+            apt update &&
+            cd /github/workspace &&
+            apt install -y git build-essential &&
+            make clean && make"
+
+      - name: artifact
+        run: |
+          mkdir autogen
+          cp src/lj_bcdef.h autogen
+          cp src/lj_ffdef.h autogen
+          cp src/lj_folddef.h autogen
+          cp src/lj_libdef.h autogen
+          cp src/lj_recdef.h autogen
+          cp src/lj_vm.S autogen
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_mips64el
+          path: autogen
+
+      - uses: docker://multiarch/debian-debootstrap:mips64el-stretch
+        with:
+          args: >
+            bash -c
+            "uname -a &&
+            apt update &&
+            cd /github/workspace &&
+            apt install -y git build-essential &&
+            make clean && make XCFLAGS=\"-DLUAJIT_DISABLE_JIT\""
+
+      - name: artifact
+        run: |
+          mkdir autogen_nojit
+          cp src/lj_bcdef.h autogen_nojit
+          cp src/lj_ffdef.h autogen_nojit
+          cp src/lj_folddef.h autogen_nojit
+          cp src/lj_libdef.h autogen_nojit
+          cp src/lj_recdef.h autogen_nojit
+          cp src/lj_vm.S autogen_nojit
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_nojit_mips64el
+          path: autogen_nojit

@@ -1,0 +1,114 @@
+name: Ubuntu (Arm)
+
+on:
+  pull_request:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - run: |
+          docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+      - uses: docker://multiarch/ubuntu-core:armhf-bionic
+        with:
+          args: >
+            bash -c
+            "uname -a &&
+            apt update &&
+            cd /github/workspace &&
+            apt install -y git build-essential &&
+            make clean && make"
+
+      - name: artifact
+        run: |
+          mkdir autogen_arm 
+          cp src/lj_bcdef.h autogen_arm
+          cp src/lj_ffdef.h autogen_arm
+          cp src/lj_folddef.h autogen_arm
+          cp src/lj_libdef.h autogen_arm
+          cp src/lj_recdef.h autogen_arm
+          cp src/lj_vm.S autogen_arm 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_arm
+          path: autogen_arm 
+
+      - uses: docker://multiarch/ubuntu-core:arm64-bionic
+        with:
+          args: >
+            bash -c
+            "uname -a &&
+            apt update &&
+            cd /github/workspace &&
+            apt install -y git build-essential &&
+            make clean && make"
+
+      - name: artifact
+        run: |
+          mkdir autogen_arm64
+          cp src/lj_bcdef.h autogen_arm64
+          cp src/lj_ffdef.h autogen_arm64
+          cp src/lj_folddef.h autogen_arm64
+          cp src/lj_libdef.h autogen_arm64
+          cp src/lj_recdef.h autogen_arm64
+          cp src/lj_vm.S autogen_arm64
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_arm64
+          path: autogen_arm64
+
+      - uses: docker://multiarch/ubuntu-core:armhf-bionic
+        with:
+          args: >
+            bash -c
+            "uname -a &&
+            apt update &&
+            cd /github/workspace &&
+            apt install -y git build-essential &&
+            make clean && make XCFLAGS=\"-DLUAJIT_DISABLE_JIT\""
+
+      - name: artifact
+        run: |
+          mkdir autogen_nojit_arm 
+          cp src/lj_bcdef.h autogen_nojit_arm
+          cp src/lj_ffdef.h autogen_nojit_arm
+          cp src/lj_folddef.h autogen_nojit_arm
+          cp src/lj_libdef.h autogen_nojit_arm
+          cp src/lj_recdef.h autogen_nojit_arm
+          cp src/lj_vm.S autogen_nojit_arm 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_nojit_arm
+          path: autogen_nojit_arm 
+
+      - uses: docker://multiarch/ubuntu-core:arm64-bionic
+        with:
+          args: >
+            bash -c
+            "uname -a &&
+            apt update &&
+            cd /github/workspace &&
+            apt install -y git build-essential &&
+            make clean && make XCFLAGS=\"-DLUAJIT_DISABLE_JIT\""
+
+      - name: artifact
+        run: |
+          mkdir autogen_nojit_arm64
+          cp src/lj_bcdef.h autogen_nojit_arm64
+          cp src/lj_ffdef.h autogen_nojit_arm64
+          cp src/lj_folddef.h autogen_nojit_arm64
+          cp src/lj_libdef.h autogen_nojit_arm64
+          cp src/lj_recdef.h autogen_nojit_arm64
+          cp src/lj_vm.S autogen_nojit_arm64
+      - uses: actions/upload-artifact@v2
+        with:
+          name: autogen_nojit_arm64
+          path: autogen_nojit_arm64
